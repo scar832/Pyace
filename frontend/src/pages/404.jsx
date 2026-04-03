@@ -2,151 +2,150 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const terminalLines = [
-    "Initializing Pyace AI Engine...",
-    "Scanning target URL...",
-    "Error: Route undefined.",
-    "AI Marker Score: 0/100 (Page Not Found)",
+  "Initializing Pyace AI Engine...",
+  "Scanning target URL...",
+  "Error: Route undefined.",
+  "AI Marker Score: 0/100 (Page Not Found)",
 ];
 
 const floatingSymbols = ["{ }", "< />", "!==", "=>", "404", "[]", "??", "def:", "class", "import", "pip", "install", "pyace-ai", "async def route():", "return"];
 
 const NotFound = () => {
-    const [displayedLines, setDisplayedLines] = useState([]);
-    const [btnPos, setBtnPos] = useState({ x: 0, y: 0 });
-    const [escapes, setEscapes] = useState(0);
+  const [displayedLines, setDisplayedLines] = useState([]);
+  const [btnPos, setBtnPos] = useState({ x: 0, y: 0 });
+  const [escapes, setEscapes] = useState(0);
 
-    useEffect(() => {
-        let currentLine = 0;
-        const interval = setInterval(() => {
-            if (currentLine < terminalLines.length) {
-                setDisplayedLines((prev) => [...prev, terminalLines[currentLine]]);
-                currentLine++;
-            } else {
-                clearInterval(interval);
-            }
-        }, 800); // Staggered typing effect per line
-        return () => clearInterval(interval);
-    }, []);
+  useEffect(() => {
+    let currentLine = 0;
+    const interval = setInterval(() => {
+      if (currentLine < terminalLines.length) {
+        setDisplayedLines((prev) => [...prev, terminalLines[currentLine]]);
+        currentLine++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 800); // Staggered typing effect per line
+    return () => clearInterval(interval);
+  }, []);
 
-    const moveButton = () => {
-        if (escapes > 4) return; // Let them catch it eventually!
-        const x = Math.random() * 700 - 100;
-        const y = Math.random() * 150 - 75;
-        setBtnPos({ x, y });
-        setEscapes((prev) => prev + 1);
-    };
+  const moveButton = () => {
+    if (escapes > 4) return; // Let them catch it eventually!
+    const x = Math.random() * 700 - 100;
+    const y = Math.random() * 150 - 75;
+    setBtnPos({ x, y });
+    setEscapes((prev) => prev + 1);
+  };
 
-    return (
-        <div className="container">
-            {/* Subtle Dot Pattern Background */}
-            <div className="dot-bg" />
+  return (
+    <div className="container">
+      {/* Subtle Dot Pattern Background */}
+      <div className="dot-bg" />
 
-            {/* Floating Syntax Symbols */}
-            {floatingSymbols.map((symbol, i) => (
-                <motion.div
-                    key={i}
-                    className="floating-symbol"
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: [0.1, 0.4, 0.1], y: [0, -30, 0] }}
-                    transition={{ repeat: Infinity, duration: 4 + i, ease: "easeInOut" }}
-                    style={{
-                        top: `${10 + Math.random() * 80}%`,
-                        left: `${10 + Math.random() * 80}%`,
-                    }}
-                >
-                    {symbol}
-                </motion.div>
+      {/* Floating Syntax Symbols */}
+      {floatingSymbols.map((symbol, i) => (
+        <motion.div
+          key={i}
+          className="floating-symbol"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: [0.1, 0.4, 0.1], y: [0, -30, 0] }}
+          transition={{ repeat: Infinity, duration: 4 + i, ease: "easeInOut" }}
+          style={{
+            top: `${10 + Math.random() * 80}%`,
+            left: `${10 + Math.random() * 80}%`,
+          }}
+        >
+          {symbol}
+        </motion.div>
+      ))}
+
+      <div className="content">
+        {/* Animated 404 Header */}
+        <motion.h1
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 100, damping: 10 }}
+          className="title"
+        >
+          <span className="text-gradient">404</span>
+        </motion.h1>
+        <p className="subtitle">Looks like this code didn't compile.</p>
+
+        {/* Sleek AI Terminal */}
+        <motion.div
+          className="mac-window"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <div className="window-header">
+            <span className="dot red"></span>
+            <span className="dot yellow"></span>
+            <span className="dot green"></span>
+            <span className="window-title">pyace-analyzer.py</span>
+          </div>
+
+          <div className="terminal-body">
+
+            {displayedLines.map((line, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className={`term-line ${index === 3 ? 'error-text' : 'normal-text'}`}
+              >
+                <span className="prompt">~ %</span> {line}
+              </motion.div>
             ))}
+            <motion.div
+              animate={{ opacity: [1, 0] }}
+              transition={{ repeat: Infinity, duration: 0.8 }}
+              className="cursor"
+            />
+          </div>
+        </motion.div>
 
-            <div className="content">
-                {/* Animated 404 Header */}
-                <motion.h1
-                    initial={{ y: -50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 100, damping: 10 }}
-                    className="title"
-                >
-                    <span className="text-gradient">404</span>
-                </motion.h1>
-                <p className="subtitle">Looks like this code didn't compile.</p>
+        {/* Evasive Button */}
+        <div className="btn-wrapper">
+          <motion.button
+            onMouseEnter={moveButton}
+            animate={{ x: btnPos.x, y: btnPos.y }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            className={`btn ${escapes > 4 ? 'btn-caught' : ''}`}
+            onClick={() => window.location.href = '/'}
+          >
+            {escapes > 4 ? "Okay, you win. Go Home." : "Back to home"}
+          </motion.button>
+        </div>
 
-                {/* Sleek AI Terminal */}
-                <motion.div
-                    className="mac-window"
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                    <div className="window-header">
-                        <span className="dot red"></span>
-                        <span className="dot yellow"></span>
-                        <span className="dot green"></span>
-                        <span className="window-title">pyace-analyzer.py</span>
-                    </div>
+        {/* Cheesy Pop-up after trying to click */}
+        <AnimatePresence>
+          {escapes > 0 && escapes <= 4 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="hint-popup"
+            >
+              Pyace: Faster reflexes needed! ⚡
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-                    <div className="terminal-body">
-
-                        {displayedLines.map((line, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className={`term-line ${index === 3 ? 'error-text' : 'normal-text'}`}
-                            >
-                                <span className="prompt">~ %</span> {line}
-                            </motion.div>
-                        ))}
-                        <motion.div
-                            animate={{ opacity: [1, 0] }}
-                            transition={{ repeat: Infinity, duration: 0.8 }}
-                            className="cursor"
-                        />
-                    </div>
-                </motion.div>
-
-                {/* Evasive Button */}
-                <div className="btn-wrapper">
-                    <motion.button
-                        onMouseEnter={moveButton}
-                        animate={{ x: btnPos.x, y: btnPos.y }}
-                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                        className={`btn ${escapes > 4 ? 'btn-caught' : ''}`}
-                        onClick={() => window.location.href = '/'}
-                    >
-                        {escapes > 4 ? "Okay, you win. Go Home." : "Back to home"}
-                    </motion.button>
-                </div>
-
-                {/* Cheesy Pop-up after trying to click */}
-                <AnimatePresence>
-                    {escapes > 0 && escapes <= 4 && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className="hint-popup"
-                        >
-                            Pyace: Faster reflexes needed! ⚡
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            <style>{`
+      <style>{`
         .container {
           position: relative;
           height: 100vh;
           width: 100vw;
           overflow: hidden;
-          background-color: #f8fafc; /* Crisp, modern off-white */
-          color: #0f172a;
+          background-color: var(--color-bg);
+          color: var(--color-text-main);
           font-family: 'Inter', -apple-system, sans-serif;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        /* Subtle modern dot pattern instead of harsh grid */
         .dot-bg {
           position: absolute;
           width: 100%;
@@ -198,7 +197,6 @@ const NotFound = () => {
           font-weight: 500;
         }
 
-        /* Sleek Window Design */
         .mac-window {
           background: #0f172a;
           border-radius: 12px;
@@ -298,8 +296,8 @@ const NotFound = () => {
           font-weight: 500;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default NotFound;
