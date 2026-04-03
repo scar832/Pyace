@@ -42,7 +42,7 @@ body,
   --shadow-sm: 0 4px 14px 0 rgba(0, 97, 255, 0.1);
 
   /* Fonts */
-  --font-sans: 'Inter', -apple-system, sans-serif;
+  --font-sans: 'Manrope', -apple-system, sans-serif;
   --font-mono: 'Fira Code', 'Courier New', monospace;
 }
 
