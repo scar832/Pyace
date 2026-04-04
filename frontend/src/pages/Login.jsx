@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../Styles/Login.css';
 import Logo from '../assets/image2.png';
+import { useNavigate } from 'react-router-dom';
 
 const TechNode = ({ icon, top, left, delay }) => (
     <motion.div
@@ -90,7 +91,7 @@ const CodeMockup = () => (
                     <span className="minimize"></span>
                     <span className="maximize"></span>
                 </div>
-                <div className="file-name">market.py</div>
+                <div className="file-name">main_entry.py</div>
             </div>
             <div className="code-content">
                 <pre>
@@ -150,6 +151,7 @@ const CodeMockup = () => (
 const Login = () => {
     const [role, setRole] = useState('student');
     const [isLogin, setIsLogin] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <div className={`login-container ${isLogin ? 'reverse' : ''}`}>
@@ -230,7 +232,7 @@ const Login = () => {
                                 <input type="password" placeholder="••••••••" />
                             </div>
 
-                            <button type="button" className="submit-btn">{isLogin ? 'Sign In' : 'Create Account'}</button>
+                            <button type="button" className="submit-btn" onClick={() => navigate('/dashboard')}>{isLogin ? 'Sign In' : 'Create Account'}</button>
                         </form>
 
                         <p className="signin-link">

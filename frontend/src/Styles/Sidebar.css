@@ -1,0 +1,35 @@
+.sidebar {
+    font-family: 'Manrope', sans-serif;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-logo img {
+    width: 30px;
+
+}
+
+.nav-link {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.user-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-type h2 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.description {
+    font-size: 12px;
+    color: #666;
+}
