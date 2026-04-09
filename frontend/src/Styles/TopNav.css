@@ -1,0 +1,78 @@
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-surface);
+    padding: 10px 24px;
+    font-family: var(--font-sans);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+ul li {
+    list-style: none;
+    display: inline-block;
+    margin-right: 25px;
+}
+
+ul li a {
+    text-decoration: none;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--color-bg-blue);
+    padding: 10px 16px;
+    border-radius: 16px;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: var(--color-text-main);
+    font-size: 0.95rem;
+    width: 200px;
+}
+
+.search-bar input::placeholder {
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+}
+
+.notification-icon {
+    position: relative;
+}
+
+.notification-icon::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+}
+
+.user-info button {
+    padding: 10px 24px;
+    border-radius: 18px;
+    border: none;
+    background: var(--color-primary-hover);
+    color: white;
+    font-weight: 400;
+    font-size: 0.9rem;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    cursor: pointer;
+}
