@@ -1,0 +1,142 @@
+.chats-widget-modern {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.chats-list-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-item-modern {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 16px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+}
+
+.chat-item-modern:hover {
+  background: var(--color-bg);
+  transform: translateX(4px);
+}
+
+.chat-avatar-wrapper {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.chat-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), #4318FF);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 10px rgba(0, 97, 255, 0.2);
+}
+
+.chat-avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chat-status-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+}
+
+.chat-status-indicator.online {
+  background: #10b981;
+}
+
+.chat-status-indicator.offline {
+  background: #94a3b8;
+}
+
+.chat-status-indicator.busy {
+  background: #ef4444;
+}
+
+.chat-content-modern {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.chat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.chat-time {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.chat-last-msg {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-bg-blue-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+}
+
+.chat-item-modern:hover .chat-action-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.chat-action-btn:hover {
+  background: var(--color-primary);
+  color: white;
+}

@@ -1,0 +1,67 @@
+.calendar-widget {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.calendar-header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-header-nav h4 {
+  font-weight: 700;
+  color: var(--color-text-main);
+  font-size: 1.1rem;
+}
+
+.calendar-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.calendar-day-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.calendar-day:not(.empty):hover {
+  background-color: var(--color-bg-blue-light);
+  color: var(--color-primary);
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, var(--color-primary), #4318FF);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0, 97, 255, 0.3);
+}
+
+.calendar-day.empty {
+  cursor: default;
+}

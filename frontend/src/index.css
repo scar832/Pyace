@@ -17,7 +17,8 @@ body,
   min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text-main);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-size: 14px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -59,6 +60,8 @@ body,
     /* Backgrounds */
     --color-bg: #0f172a;
     --color-surface: #1e293b;
+    --color-bg-blue: #0f172a;
+    --color-bg-blue-light: #0f172a;
 
     /* Typography Colors */
     --color-text-main: #f8fafc;
@@ -261,7 +264,7 @@ body,
 }
 
 .welcome-text {
-  font-size: 2rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: var(--color-text-main);
   letter-spacing: -0.02em;
@@ -274,6 +277,7 @@ body,
 .welcome-subtext {
   color: var(--color-text-muted);
   font-size: 1rem;
+  font-family: 'Manrope';
 }
 
 .stats-container {
@@ -375,7 +379,7 @@ body,
 }
 
 .section-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-text-main);
 }
@@ -661,7 +665,7 @@ body,
 .widget-header h3 {
   font-weight: 700;
   color: var(--color-text-main);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
 /* To-Do List */
@@ -825,4 +829,9 @@ body,
 
 .chat-btn:hover {
   background: rgba(0, 97, 255, 0.2);
+}
+
+.middle {
+  display: inline-flex;
+  gap: 16px;
 }
