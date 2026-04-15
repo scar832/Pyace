@@ -19,6 +19,7 @@ import Assignments from './pages/student/Assignments';
 import Sandbox from './pages/student/Sandbox';
 import Reports from './pages/student/Reports';
 import Classes from './pages/student/Classes';
+import ClassDetail from './pages/student/ClassDetail';
 import Profile from './pages/student/Profile';
 import Settings from './pages/student/Settings';
 
@@ -80,6 +81,7 @@ const AppRoutes = () => {
               <Route path="sandbox" element={<Sandbox />} />
               <Route path="reports" element={<Reports />} />
               <Route path="classes" element={<Classes />} />
+              <Route path="classes/:id" element={<ClassDetail />} />
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Settings />} />
             </Route>
