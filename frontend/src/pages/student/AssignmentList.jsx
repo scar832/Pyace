@@ -1,8 +1,13 @@
 import React from 'react';
 import { Play, CheckCircle, AlertCircle, FileText } from 'lucide-react';
-import '../../styles/assignments.css';
+import { Link } from 'react-router-dom';
+import { mockAssignments } from '../../data/mockAssignments';
+import '../../Styles/assignments.css';
 
-const AssignmentList = ({ assignments }) => {
+const AssignmentList = ({ assignments = mockAssignments }) => {
+  if (!assignments || !Array.isArray(assignments)) {
+    return <div style={{ color: 'white' }}>Error loading assignments</div>;
+  }
   const overdue = assignments.filter(a => a.status === 'overdue');
   const upNext = assignments.filter(a => a.status === 'pending');
   const completed = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
@@ -23,7 +28,11 @@ const AssignmentList = ({ assignments }) => {
                 </div>
               </div>
               <div className="card-action">
-                {a.status === 'pending' && <button className="btn-start"><Play size={14}/> Start Work</button>}
+                {a.status === 'pending' && (
+                  <Link to={`/student/assignments/${a.id}`} className="btn-start">
+                    <Play size={14} /> Start Work
+                  </Link>
+                )}
                 {a.status === 'overdue' && <span className="badge-overdue">Overdue</span>}
                 {a.status === 'submitted' && <span className="badge-submitted">Submitted</span>}
                 {a.status === 'graded' && <span className="badge-graded">Score: {a.score}%</span>}

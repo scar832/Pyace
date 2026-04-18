@@ -1,184 +1,254 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Users, MessageSquare, Play, Github, CheckCircle, Circle } from 'lucide-react';
-import '../../styles/assignmentDetail.css';
-
-const MOCK_DB = {
-  '1': {
-    id: '1',
-    title: 'Graph Traversal Implementation',
-    className: 'Advanced Data Structures',
-    courseCode: 'CS 301',
-    dueDate: new Date(Date.now() + 86400000 * 3).toISOString(),
-    status: 'pending',
-    type: 'code',
-    isGroup: true,
-    groupDetails: {
-      groupName: 'Alpha Team',
-      members: ['Kwame Asante', 'Priya Nair', 'Luca Ferrari']
-    },
-    description: 'In this assignment, you will implement Breadth-First Search (BFS) and Depth-First Search (DFS) algorithms to find the shortest path in an unweighted graph. The graph will be represented using an adjacency list. Ensure your algorithms map cleanly to the provided starter code interfaces, and account for potential cycles gracefully without triggering stack overflows.',
-    objectives: [
-      { id: 'o1', text: 'Implement BFS traversal method', completed: false },
-      { id: 'o2', text: 'Implement DFS iterative traversal method', completed: false },
-      { id: 'o3', text: 'Provide unit tests for cyclical graphs', completed: false },
-      { id: 'o4', text: 'Document time and space complexities', completed: false }
-    ]
-  },
-  '2': {
-    id: '2',
-    title: 'Accessibility Audit Report',
-    className: 'User Interface Engineering',
-    courseCode: 'SE 210',
-    dueDate: new Date(Date.now() - 86400000 * 1).toISOString(),
-    status: 'overdue',
-    type: 'objective',
-    isGroup: false,
-    groupDetails: null,
-    description: 'Perform a full WSAG accessibility audit on the provided e-commerce mockup. Identify at least 5 major compliance issues across contrast ratios, semantic HTML structuring, ARIA labeling, and keyboard navigation. Fill out the corresponding checklists below as you address them.',
-    objectives: [
-      { id: 'o1', text: 'Identify 2 contrast violations', completed: true },
-      { id: 'o2', text: 'Fix missing alt attributes in media', completed: false },
-      { id: 'o3', text: 'Ensure full keyboard accessibility through modal', completed: false }
-    ]
-  }
-};
+import {
+  ArrowLeft,
+  Check,
+  Users,
+  GitBranch,
+  Play,
+  CheckCircle,
+  FileText,
+  Clock,
+  Calendar,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Award,
+  CircleDashed,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react';
+import { mockAssignments } from '../../data/mockAssignments';
+import '../../Styles/assignmentDetail.css';
 
 const AssignmentDetail = () => {
   const { id } = useParams();
-  const assignment = MOCK_DB[id] || MOCK_DB['1']; // Fallback to '1' for mock testing
-  const [objectives, setObjectives] = useState(assignment.objectives);
+  const [assignment, setAssignment] = useState(null);
+  const [objectives, setObjectives] = useState([]);
   const [githubUrl, setGithubUrl] = useState('');
+  const [rubricOpen, setRubricOpen] = useState(false);
+
+  useEffect(() => {
+    // Find matching data based on id with robust string comparison
+    const found = mockAssignments?.find(a => String(a.id) === String(id));
+    if (found) {
+      setAssignment(found);
+      setObjectives(found.objectives || []);
+    }
+  }, [id]);
 
   const toggleObjective = (objId) => {
-    if (assignment.type !== 'objective') return;
-    setObjectives(prev => prev.map(o => o.id === objId ? { ...o, completed: !o.completed } : o));
+    setObjectives(prev => prev.map(obj =>
+      obj.id === objId ? { ...obj, completed: !obj.completed } : obj
+    ));
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return '#0061ff';
-      case 'overdue': return '#ef4444';
-      case 'submitted': 
-      case 'graded': return '#10b981';
-      default: return '#888';
-    }
-  };
+  if (!assignment) {
+    return <div className="p-8 text-white">Assignment not found or loading...</div>;
+  }
 
-  const initials = (name) => name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const allCompleted = objectives.length > 0 && objectives.every(obj => obj.completed);
 
   return (
     <div className="assignment-detail-container layout-content">
-       <Link to="/student/assignments" className="back-link">
-          <ArrowLeft size={16}/> Back to Assignments
-       </Link>
-       
-       <div className="assignment-detail-grid">
-          {/* LEFT COLUMN: Main Content */}
-          <div className="detail-main-col">
-             <div className="detail-header">
-                <div className="detail-meta">
-                   <span className="detail-course">{assignment.courseCode} — {assignment.className}</span>
-                   <span className="detail-due" style={{ color: assignment.status === 'overdue' ? '#ef4444' : undefined }}>
-                      Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                   </span>
-                </div>
-                <h1 className="detail-title">{assignment.title}</h1>
-                <div className="detail-badges">
-                   <span className="detail-badge">{assignment.isGroup ? 'Group Project' : 'Individual'}</span>
-                   <span className="detail-badge type">{assignment.type === 'code' ? 'Code Submission' : 'Objective Task'}</span>
-                </div>
-             </div>
+      {/* HEADER SECTION */}
+      <div className="detail-header-panel">
+        <Link to="/student/assignments" className="btn-back">
+          <ArrowLeft size={16} /> <span>Back to Assignments</span>
+        </Link>
+        <div className="header-title-row">
+          <h1 className="header-title">{assignment.title}</h1>
+          <span className={`status-badge status-${assignment.status}`}>
+            {assignment.status.toUpperCase()}
+          </span>
+        </div>
+        
+        <div className="header-pills">
+          <div className="pill pill-class" style={{ '--pill-accent': assignment.accent }}>
+            <BookOpen size={14} />
+            <span>{assignment.className} ({assignment.courseCode})</span>
+          </div>
+          <div className="pill pill-time">
+            <Clock size={14} />
+            <span>Est. {assignment.estimatedTime}</span>
+          </div>
+          <div className="pill pill-due">
+            <Calendar size={14} />
+            <span>Due {new Date(assignment.dueDate).toLocaleDateString(undefined, {
+              month: 'short', day: 'numeric', year: 'numeric'
+            })}</span>
+          </div>
+        </div>
 
-             <div className="detail-section">
-                <h2>Description</h2>
-                <p className="detail-desc">{assignment.description}</p>
-             </div>
-
-             <div className="detail-section">
-                <h2>{assignment.type === 'objective' ? 'Task Checklist' : 'Requirements'}</h2>
-                <div className={`objectives-list ${assignment.type}`}>
-                   {objectives.map(obj => (
-                     <div 
-                       key={obj.id} 
-                       className={`objective-item ${obj.completed ? 'completed' : ''}`}
-                       onClick={() => toggleObjective(obj.id)}
-                     >
-                       {assignment.type === 'objective' ? (
-                          obj.completed ? <CheckCircle className="check-icon done" size={20}/> : <Circle className="check-icon" size={20}/>
-                       ) : (
-                          <div className="bullet-point"></div>
-                       )}
-                       <span className="objective-text">{obj.text}</span>
-                     </div>
-                   ))}
+        {/* VISUAL TIMELINE */}
+        {assignment.timeline && (
+          <div className="timeline-stepper">
+            {assignment.timeline.map((step, idx) => {
+              const isLast = idx === assignment.timeline.length - 1;
+              return (
+                <div key={idx} className={`timeline-step ${step.status}`}>
+                  <div className="step-icon-container">
+                    {step.status === 'complete' ? <CheckCircle2 size={18} /> : 
+                     step.status === 'active' ? <CircleDashed size={18} className="spin-slow" /> : 
+                     <CircleDashed size={18} />}
+                  </div>
+                  <span className="step-label">{step.step}</span>
+                  {!isLast && <div className="step-connector"></div>}
                 </div>
-             </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="detail-grid">
+        {/* LEFT COLUMN: The Brief */}
+        <div className="detail-main-column">
+          
+          <div className="matte-card">
+            <div className="card-header">
+              <div className="card-icon"><FileText size={18} /></div>
+              <h3>Project Brief</h3>
+            </div>
+            <div className="card-body">
+              <p className="brief-text">{assignment.description}</p>
+            </div>
           </div>
 
-          {/* RIGHT COLUMN: Sidebar */}
-          <div className="detail-sidebar-col">
-             
-             {/* Status Card */}
-             <div className="sidebar-card status-card" style={{ '--status-color': getStatusColor(assignment.status) }}>
-                <span className="status-label">Current Status</span>
-                <div className="status-value">
-                   <span className="status-indicator"></span>
-                   {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
-                </div>
-             </div>
-
-             {/* Group Card (Conditional) */}
-             {assignment.isGroup && assignment.groupDetails && (
-               <div className="sidebar-card group-card">
-                  <div className="group-card-header">
-                     <Users size={18} className="group-icon"/>
-                     <h3>{assignment.groupDetails.groupName}</h3>
+          <div className="matte-card">
+            <div className="card-header">
+              <div className="card-icon"><CheckCircle size={18} /></div>
+              <h3>Actionable Objectives</h3>
+            </div>
+            <div className="card-body">
+              <div className="task-list">
+                {objectives.map((obj) => (
+                  <div
+                    key={obj.id}
+                    className={`task-row ${obj.completed ? 'completed' : ''}`}
+                    onClick={() => toggleObjective(obj.id)}
+                  >
+                    <div className="task-checkbox">
+                      {obj.completed && <Check size={14} />}
+                    </div>
+                    <span className="task-text">{obj.text}</span>
                   </div>
-                  <div className="group-members-list">
-                     {assignment.groupDetails.members.map(m => (
-                       <div key={m} className="group-member-item">
-                          <div className="member-avatar">{initials(m)}</div>
-                          <span className="member-name">{m}</span>
-                       </div>
-                     ))}
-                  </div>
-                  <button className="open-chat-btn"><MessageSquare size={16}/> Open Group Chat</button>
-               </div>
-             )}
-
-             {/* Submission Card (Conditional base on type) */}
-             <div className="sidebar-card submission-card">
-                <h3>Submission</h3>
-                {assignment.type === 'code' ? (
-                  <div className="code-submission">
-                     <div className="input-group">
-                        <Github size={16} className="input-icon"/>
-                        <input 
-                           type="url" 
-                           placeholder="GitHub Repository URL" 
-                           value={githubUrl}
-                           onChange={(e) => setGithubUrl(e.target.value)}
-                        />
-                     </div>
-                     <button className="submit-btn primary">Submit Repo</button>
-                     
-                     <div className="divider"><span>OR</span></div>
-                     
-                     <Link to="/student/sandbox" className="sandbox-btn secondary">
-                        <Play size={16} className="play-icon" /> Launch in Sandbox
-                     </Link>
-                  </div>
-                ) : (
-                  <div className="objective-submission">
-                     <p className="submission-hint">Complete all checklist items on the left before submitting.</p>
-                     <button className="submit-btn primary">Mark as Complete & Submit</button>
-                  </div>
-                )}
-             </div>
-
+                ))}
+              </div>
+            </div>
           </div>
-       </div>
+
+          {/* RUBRIC ACCORDION */}
+          {assignment.rubric && (
+            <div className="matte-card rubric-card">
+              <div 
+                className="card-header clickable" 
+                onClick={() => setRubricOpen(!rubricOpen)}
+              >
+                <div className="card-header-left">
+                  <div className="card-icon"><Award size={18} /></div>
+                  <h3>Grading Criteria</h3>
+                </div>
+                <div className="accordion-icon">
+                  {rubricOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </div>
+              </div>
+              
+              <div className={`rubric-content ${rubricOpen ? 'open' : ''}`}>
+                <div className="rubric-table">
+                  <div className="rubric-header">
+                    <div>Criteria</div>
+                    <div className="points-col">Points</div>
+                  </div>
+                  {assignment.rubric.map((item, idx) => (
+                    <div key={idx} className="rubric-row">
+                      <div className="rubric-criteria">{item.criteria}</div>
+                      <div className="rubric-points">{item.points} pts</div>
+                    </div>
+                  ))}
+                  <div className="rubric-row total-row">
+                    <div className="rubric-criteria">Total Possible</div>
+                    <div className="rubric-points text-accent">
+                      {assignment.rubric.reduce((acc, curr) => acc + curr.points, 0)} pts
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* RIGHT COLUMN: Action Sidebar */}
+        <div className="detail-side-column">
+
+          {/* GROUP INFO */}
+          {assignment.isGroup && assignment.groupDetails && (
+            <div className="matte-card side-card">
+              <div className="card-header compact">
+                <Users size={16} /> <h4>Team: {assignment.groupDetails.teamName}</h4>
+              </div>
+              <div className="team-members">
+                {assignment.groupDetails.members.map((member, idx) => (
+                  <div key={idx} className="team-member">
+                    <div className="member-initials">
+                      {member.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                    </div>
+                    <span>{member}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SUBMISSION PORTAL */}
+          <div className="matte-card side-card submission-card">
+            <div className="card-header compact">
+              <h4>Submission Portal</h4>
+            </div>
+            
+            <div className="submission-body">
+              {assignment.type === 'code' ? (
+                <>
+                  <div className="input-group">
+                    <label htmlFor="githubUrl">GitHub Repository</label>
+                    <div className="input-icon-wrapper">
+                      <GitBranch size={16} className="input-icon" />
+                      <input
+                        id="githubUrl"
+                        type="url"
+                        className="luxury-input"
+                        placeholder="https://github.com/..."
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <button className="hardware-btn btn-action" disabled={!allCompleted && objectives.length > 0}>
+                    <Play size={16} className="btn-icon" /> 
+                    <span>Launch in Sandbox</span>
+                  </button>
+                </>
+              ) : (
+                <div className="action-wrapper">
+                  <button className="hardware-btn btn-success" disabled={!allCompleted && objectives.length > 0}>
+                    <Check size={16} className="btn-icon" /> 
+                    <span>Submit Assignment</span>
+                  </button>
+                </div>
+              )}
+              
+              {(objectives.length > 0 && !allCompleted) && (
+                <div className="submission-warning">
+                  <AlertCircle size={14} />
+                  Complete all objectives to unlock submission.
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 };

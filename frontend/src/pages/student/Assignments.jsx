@@ -2,74 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Layout, CheckSquare, X } from 'lucide-react';
 import AssignmentCalendar from './AssignmentCalendar';
 import AssignmentList from './AssignmentList';
-import '../../styles/assignments.css';
+import { mockAssignments } from '../../data/mockAssignments';
+import '../../Styles/assignments.css';
 
-const MOCK_ASSIGNMENTS = [
-  { 
-    id: '1', 
-    title: 'Graph Traversal Implementation', 
-    className: 'Advanced Data Structures', 
-    courseCode: 'CS 301', 
-    dueDate: new Date().toISOString(), 
-    status: 'pending', 
-    accent: '#0061ff' 
-  },
-  { 
-    id: '2', 
-    title: 'Accessibility Audit Report', 
-    className: 'User Interface Engineering', 
-    courseCode: 'SE 210', 
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString(), 
-    status: 'pending', 
-    accent: '#10b981' 
-  },
-  { 
-    id: '3', 
-    title: 'Minimax Agent', 
-    className: 'Artificial Intelligence', 
-    courseCode: 'CS 450', 
-    dueDate: new Date(Date.now() - 86400000 * 3).toISOString(), 
-    status: 'overdue', 
-    accent: '#8b5cf6' 
-  },
-  { 
-    id: '4', 
-    title: 'Component Library — Part 1', 
-    className: 'User Interface Engineering', 
-    courseCode: 'SE 210', 
-    dueDate: new Date(Date.now() - 86400000 * 7).toISOString(), 
-    status: 'graded', 
-    score: 95, 
-    accent: '#10b981' 
-  },
-  { 
-    id: '5', 
-    title: 'Red-Black Tree Visualiser', 
-    className: 'Advanced Data Structures', 
-    courseCode: 'CS 301', 
-    dueDate: new Date(Date.now() - 86400000 * 2).toISOString(), 
-    status: 'submitted', 
-    accent: '#0061ff' 
-  },
-  { 
-    id: '6', 
-    title: 'SQL Query Optimisation Lab', 
-    className: 'Database Management Systems', 
-    courseCode: 'DB 201', 
-    dueDate: new Date(Date.now() + 86400000 * 5).toISOString(), 
-    status: 'pending', 
-    accent: '#ef4444' 
-  },
-  { 
-    id: '7', 
-    title: 'Modern Web Architecture Final', 
-    className: 'Modern Web Architecture', 
-    courseCode: 'SE 305', 
-    dueDate: new Date(Date.now() + 86400000 * 14).toISOString(), 
-    status: 'pending', 
-    accent: '#f59e0b' 
-  },
-];
+const MOCK_ASSIGNMENTS = mockAssignments;
 
 const Assignments = () => {
   const [selectedClass, setSelectedClass] = useState('All');
@@ -78,7 +14,7 @@ const Assignments = () => {
   const classes = ['All', ...new Set(MOCK_ASSIGNMENTS.map(a => a.courseCode))];
 
   const filteredAssignments = useMemo(() => {
-    let filtered = MOCK_ASSIGNMENTS;
+    let filtered = [...MOCK_ASSIGNMENTS];
     
     // Filter by Class
     if (selectedClass !== 'All') {
