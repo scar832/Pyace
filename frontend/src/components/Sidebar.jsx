@@ -1,20 +1,21 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Settings, User, SquareTerminal, GraduationCap, School } from 'lucide-react';
+import { NavLink, Link } from 'react-router-dom';
+import { LayoutDashboard, Users, BookOpen, Settings, SquareTerminal, GraduationCap, School } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Logo from '../assets/image2.png';
 import '../Styles/Sidebar.css';
 import { ChevronRight } from 'lucide-react';
 
 const studentRoutes = [
-  { path: 'dashboard',   name: 'DASHBOARD',  icon: LayoutDashboard },
-  { path: 'classes',     name: 'MY CLASSES', icon: School },
-  { path: 'assignments', name: 'ASSIGNMENT',  icon: BookOpen },
-  { path: 'sandbox',     name: 'SANDBOX',     icon: SquareTerminal },
-  { path: 'reports',     name: 'REPORT',      icon: GraduationCap },
+  { path: '/student/dashboard', name: 'DASHBOARD', icon: LayoutDashboard },
+  { path: '/student/classes', name: 'MY CLASSES', icon: School },
+  { path: '/student/assignments', name: 'ASSIGNMENTS', icon: BookOpen },
+  { path: '/student/sandbox', name: 'SANDBOX', icon: SquareTerminal },
+  { path: '/student/reports', name: 'REPORTS', icon: GraduationCap },
+  { path: '/student/settings', name: 'SETTINGS', icon: Settings },
 ];
 
 const instructorRoutes = [
-  { path: 'dashboard', name: 'DASHBOARD', icon: LayoutDashboard },
+  { path: '/instructor/dashboard', name: 'DASHBOARD', icon: LayoutDashboard },
 ];
 
 // basePath: "/student" | "/instructor"
@@ -41,7 +42,7 @@ const Sidebar = ({ basePath = '/student' }) => {
         {routes.map((route) => (
           <NavLink
             key={route.path}
-            to={`${basePath}/${route.path}`}
+            to={route.path}
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
             {({ isActive }) => (
@@ -63,15 +64,17 @@ const Sidebar = ({ basePath = '/student' }) => {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="user-info">
-          <div className="user-avatar">JS</div>
-          <div className="user-details">
-            <span className="user-name">John Smith</span>
-            <span className="user-role">
-              {basePath === '/instructor' ? 'Instructor' : 'Student'}
-            </span>
+        <Link to={`${basePath}/profile`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="user-info">
+            <div className="user-avatar">JS</div>
+            <div className="user-details">
+              <span className="user-name">John Smith</span>
+              <span className="user-role">
+                {basePath === '/instructor' ? 'Instructor' : 'Student'}
+              </span>
+            </div>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );

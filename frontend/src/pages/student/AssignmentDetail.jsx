@@ -62,7 +62,7 @@ const AssignmentDetail = () => {
             {assignment.status.toUpperCase()}
           </span>
         </div>
-        
+
         <div className="header-pills">
           <div className="pill pill-class" style={{ '--pill-accent': assignment.accent }}>
             <BookOpen size={14} />
@@ -88,9 +88,9 @@ const AssignmentDetail = () => {
               return (
                 <div key={idx} className={`timeline-step ${step.status}`}>
                   <div className="step-icon-container">
-                    {step.status === 'complete' ? <CheckCircle2 size={18} /> : 
-                     step.status === 'active' ? <CircleDashed size={18} className="spin-slow" /> : 
-                     <CircleDashed size={18} />}
+                    {step.status === 'complete' ? <CheckCircle2 size={18} /> :
+                      step.status === 'active' ? <CircleDashed size={18} className="spin-slow" /> :
+                        <CircleDashed size={18} />}
                   </div>
                   <span className="step-label">{step.step}</span>
                   {!isLast && <div className="step-connector"></div>}
@@ -104,8 +104,8 @@ const AssignmentDetail = () => {
       <div className="detail-grid">
         {/* LEFT COLUMN: The Brief */}
         <div className="detail-main-column">
-          
-          <div className="matte-card">
+
+          <div className="matte-card assd">
             <div className="card-header">
               <div className="card-icon"><FileText size={18} /></div>
               <h3>Project Brief</h3>
@@ -115,7 +115,7 @@ const AssignmentDetail = () => {
             </div>
           </div>
 
-          <div className="matte-card">
+          <div className="matte-card assd">
             <div className="card-header">
               <div className="card-icon"><CheckCircle size={18} /></div>
               <h3>Actionable Objectives</h3>
@@ -140,9 +140,9 @@ const AssignmentDetail = () => {
 
           {/* RUBRIC ACCORDION */}
           {assignment.rubric && (
-            <div className="matte-card rubric-card">
-              <div 
-                className="card-header clickable" 
+            <div className="matte-card rubric-card assd">
+              <div
+                className="card-header clickable"
                 onClick={() => setRubricOpen(!rubricOpen)}
               >
                 <div className="card-header-left">
@@ -153,7 +153,7 @@ const AssignmentDetail = () => {
                   {rubricOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
               </div>
-              
+
               <div className={`rubric-content ${rubricOpen ? 'open' : ''}`}>
                 <div className="rubric-table">
                   <div className="rubric-header">
@@ -206,7 +206,7 @@ const AssignmentDetail = () => {
             <div className="card-header compact">
               <h4>Submission Portal</h4>
             </div>
-            
+
             <div className="submission-body">
               {assignment.type === 'code' ? (
                 <>
@@ -225,19 +225,19 @@ const AssignmentDetail = () => {
                     </div>
                   </div>
                   <button className="hardware-btn btn-action" disabled={!allCompleted && objectives.length > 0}>
-                    <Play size={16} className="btn-icon" /> 
+                    <Play size={16} className="btn-icon" />
                     <span>Launch in Sandbox</span>
                   </button>
                 </>
               ) : (
                 <div className="action-wrapper">
                   <button className="hardware-btn btn-success" disabled={!allCompleted && objectives.length > 0}>
-                    <Check size={16} className="btn-icon" /> 
+                    <Check size={16} className="btn-icon" />
                     <span>Submit Assignment</span>
                   </button>
                 </div>
               )}
-              
+
               {(objectives.length > 0 && !allCompleted) && (
                 <div className="submission-warning">
                   <AlertCircle size={14} />
