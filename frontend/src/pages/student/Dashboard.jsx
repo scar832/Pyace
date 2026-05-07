@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame, BookOpen, FileText, MoreVertical } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // General components (shared across student & instructor)
 import CalendarWidget from '../../components/general/CalendarWidget';
@@ -49,25 +50,29 @@ const Dashboard = () => {
                     animate={{ opacity: 1, x: 0 }}
                     className="stats-container"
                 >
-                    <div className="stat-card">
-                        <div className="stat-icon flame">
-                            <Flame size={18} color="#6F5200" fill="#6F5200" />
+                    <Link to="/student/classes" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <div className="stat-card">
+                            <div className="stat-icon flame">
+                                <Flame size={18} color="#6F5200" fill="#6F5200" />
+                            </div>
+                            <div className="stat-info">
+                                <span className="stat-label">STREAK</span>
+                                <span className="stat-value">12 Days</span>
+                            </div>
                         </div>
-                        <div className="stat-info">
-                            <span className="stat-label">STREAK</span>
-                            <span className="stat-value">12 Days</span>
-                        </div>
-                    </div>
+                    </Link>
 
-                    <div className="stat-card">
-                        <div className="stat-icon book">
-                            <BookOpen size={18} />
+                    <Link to="/student/assignments" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <div className="stat-card">
+                            <div className="stat-icon book">
+                                <BookOpen size={18} />
+                            </div>
+                            <div className="stat-info">
+                                <span className="stat-label">COMPLETED</span>
+                                <span className="stat-value">8 Modules</span>
+                            </div>
                         </div>
-                        <div className="stat-info">
-                            <span className="stat-label">COMPLETED</span>
-                            <span className="stat-value">8 Modules</span>
-                        </div>
-                    </div>
+                    </Link>
                 </motion.div>
             </header>
 
