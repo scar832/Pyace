@@ -1,9 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Search, Bell, Zap } from 'lucide-react';
 import '../Styles/TopNav.css';
+import NotificationDrawer from './student/NotificationDrawer';
 
 const TopNav = () => {
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+
     return (
+        <>
         <div className="top-nav">
             <div className="nav-left">
                 <ul>
@@ -17,13 +21,17 @@ const TopNav = () => {
                     <Search size={16} color='var(--color-text-muted)' />
                     <input type="text" placeholder="search courses..." />
                 </div>
-                <button className="icon-btn"><Bell size={20} fill='var(--color-text-muted)' /></button>
+                <button className="icon-btn" onClick={() => setIsNotifOpen(true)}>
+                    <Bell size={20} fill='var(--color-text-muted)' />
+                </button>
                 <button className="icon-btn"><Zap size={20} fill='var(--color-text-muted)' /></button>
                 <div className="user-info">
                     <button className='upgrade-btn'>Upgrade to Pro</button>
                 </div>
             </div>
         </div>
+        <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+        </>
     )
 }
 
