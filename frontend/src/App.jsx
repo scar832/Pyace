@@ -22,6 +22,7 @@ import Classes from './pages/student/Classes';
 import ClassDetail from './pages/student/ClassDetail';
 import Profile from './pages/student/Profile';
 import Settings from './pages/student/Settings';
+import AssignmentDetail from './pages/student/AssignmentDetail';
 
 // Instructor pages
 import InstructorDashboard from './pages/instructor/Dashboard';
@@ -78,6 +79,7 @@ const AppRoutes = () => {
             <Route path="/student/*" element={<StudentLayout />}>
               <Route path="dashboard" element={<StudentDashboard />} />
               <Route path="assignments" element={<Assignments />} />
+              <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="sandbox" element={<Sandbox />} />
               <Route path="reports" element={<Reports />} />
               <Route path="classes" element={<Classes />} />

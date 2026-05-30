@@ -135,10 +135,12 @@
     flex-direction: row;
     align-items: flex-start;
   }
+
   .assignments-list-col {
     flex: 1;
     min-width: 0;
   }
+
   .assignments-calendar-col {
     width: 330px;
     flex-shrink: 0;
@@ -320,9 +322,17 @@
   border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
 }
 
-.icon-overdue { color: #ef4444; }
-.icon-pending { color: var(--color-primary, #0061ff); }
-.icon-completed { color: #10b981; }
+.icon-overdue {
+  color: #ef4444;
+}
+
+.icon-pending {
+  color: var(--color-primary, #0061ff);
+}
+
+.icon-completed {
+  color: #10b981;
+}
 
 .section-list {
   display: flex;
@@ -347,10 +357,19 @@
 }
 
 /* Subtle highlights by status */
-.assignment-list-card.status-overdue { border-left: 3px solid #ef4444; }
-.assignment-list-card.status-pending { border-left: 3px solid var(--color-primary, #0061ff); }
+.assignment-list-card.status-overdue {
+  border-left: 3px solid #ef4444;
+}
+
+.assignment-list-card.status-pending {
+  border-left: 3px solid var(--color-primary, #0061ff);
+}
+
 .assignment-list-card.status-submitted,
-.assignment-list-card.status-graded { border-left: 3px solid #10b981; opacity: 0.75; }
+.assignment-list-card.status-graded {
+  border-left: 3px solid #10b981;
+  opacity: 0.75;
+}
 
 .assignment-list-card.status-submitted:hover,
 .assignment-list-card.status-graded:hover {
@@ -366,7 +385,7 @@
 .card-title {
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--color-text-main, #fff);
+  color: var(--color-text-main);
   margin: 0;
 }
 
@@ -433,7 +452,8 @@
   border-radius: 8px;
 }
 
-.badge-submitted, .badge-graded {
+.badge-submitted,
+.badge-graded {
   color: #10b981;
   font-size: 0.85rem;
   font-weight: 700;
@@ -458,22 +478,30 @@
     align-items: flex-start;
     gap: 20px;
   }
+
   .weekly-progress-box {
     align-items: flex-start;
     width: 100%;
   }
+
   .progress-track {
     width: 100%;
   }
+
   .assignment-list-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
+
   .card-action {
     width: 100%;
   }
-  .btn-start, .badge-overdue, .badge-submitted, .badge-graded {
+
+  .btn-start,
+  .badge-overdue,
+  .badge-submitted,
+  .badge-graded {
     width: 100%;
     justify-content: center;
     text-align: center;
