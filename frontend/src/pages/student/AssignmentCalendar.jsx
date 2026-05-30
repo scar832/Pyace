@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
-import '../../styles/assignments.css';
+import '../../Styles/assignments.css';
 
 // Native Date helpers
 const getWeekDays = (baseDate) => {
