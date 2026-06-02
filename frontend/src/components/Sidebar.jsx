@@ -16,6 +16,8 @@ const studentRoutes = [
 
 const instructorRoutes = [
   { path: '/instructor/dashboard', name: 'DASHBOARD', icon: LayoutDashboard },
+  { path: '/instructor/classroom', name: 'MANAGE CLASSROOM', icon: School },
+  { path: '/instructor/assignments', name: 'MANAGE ASSIGNMENTS', icon: BookOpen },
 ];
 
 // basePath: "/student" | "/instructor"

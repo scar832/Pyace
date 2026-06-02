@@ -26,6 +26,9 @@ import AssignmentDetail from './pages/student/AssignmentDetail';
 
 // Instructor pages
 import InstructorDashboard from './pages/instructor/Dashboard';
+import ManageClassroom from './pages/instructor/ManageClassroom';
+import ManageClassDetail from './pages/instructor/ManageClassDetail';
+import ManageAssignments from './pages/instructor/ManageAssignments';
 
 // General pages
 import Login from './pages/Login';
@@ -34,10 +37,20 @@ import NotFound from './pages/general/NotFound';
 // Dev utilities
 import DevRoleToggle from './components/general/DevRoleToggle';
 
+import { useAuth as useClerkAuth } from '@clerk/react';
+
 // ─── Protected Route ─────────────────────────────────────────────────────────
-// Guards a layout route: redirects if the current role doesn't match.
+// Guards a layout route: redirects to login if not authenticated, or if the current role doesn't match.
 const ProtectedRoute = ({ allowedRole, redirectTo }) => {
   const { role } = useAuth();
+  const { isLoaded, isSignedIn } = useClerkAuth();
+
+  if (!isLoaded) return null; // or a loading spinner
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
   if (role !== allowedRole) {
     return <Navigate to={redirectTo} replace />;
   }
@@ -47,6 +60,14 @@ const ProtectedRoute = ({ allowedRole, redirectTo }) => {
 // ─── Root redirect based on active role ──────────────────────────────────────
 const RootRedirect = () => {
   const { role } = useAuth();
+  const { isLoaded, isSignedIn } = useClerkAuth();
+
+  if (!isLoaded) return null;
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <Navigate
       to={role === 'INSTRUCTOR' ? '/instructor/dashboard' : '/student/dashboard'}
@@ -68,39 +89,24 @@ const AppRoutes = () => {
           <Route path="/" element={<RootRedirect />} />
 
           {/* Student routes — guard → layout → pages */}
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRole="STUDENT"
-                redirectTo="/instructor/dashboard"
-              />
-            }
-          >
-            <Route path="/student/*" element={<StudentLayout />}>
-              <Route path="dashboard" element={<StudentDashboard />} />
-              <Route path="assignments" element={<Assignments />} />
-              <Route path="assignments/:id" element={<AssignmentDetail />} />
-              <Route path="sandbox" element={<Sandbox />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="classes" element={<Classes />} />
-              <Route path="classes/:id" element={<ClassDetail />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
+          <Route path="/student/*" element={<StudentLayout />}>
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="assignments" element={<Assignments />} />
+            <Route path="assignments/:id" element={<AssignmentDetail />} />
+            <Route path="sandbox" element={<Sandbox />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="classes" element={<Classes />} />
+            <Route path="classes/:id" element={<ClassDetail />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           {/* Instructor routes — guard → layout → pages */}
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRole="INSTRUCTOR"
-                redirectTo="/student/dashboard"
-              />
-            }
-          >
-            <Route path="/instructor/*" element={<InstructorLayout />}>
-              <Route path="dashboard" element={<InstructorDashboard />} />
-            </Route>
+          <Route path="/instructor/*" element={<InstructorLayout />}>
+            <Route path="dashboard" element={<InstructorDashboard />} />
+            <Route path="classroom" element={<ManageClassroom />} />
+            <Route path="classroom/:id" element={<ManageClassDetail />} />
+            <Route path="assignments" element={<ManageAssignments />} />
           </Route>
 
           {/* Catch-all */}

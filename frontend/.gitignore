@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.env
+.env.local
+.env.example
+.env.test
+.env.dev
+.env.prod
+.env.local.test
+.env.local.dev
+.env.local.prod
+.env.test.local
+.env.dev.local
+.env.prod.local

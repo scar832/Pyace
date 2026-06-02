@@ -17,7 +17,7 @@ import { MoreVertical, Star, Archive, LogOut } from 'lucide-react';
  *  coverImage   string   img URL (optional)
  *  accent       string   CSS colour used for gradient fallback
  */
-const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverImage, accent }) => {
+const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverImage, accent, basePath = '/student/classes' }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -63,7 +63,7 @@ const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverIma
   };
 
   return (
-    <Link to={`/student/classes/${id}`} className="class-card">
+    <Link to={`${basePath}/${id}`} className="class-card">
       {/* Cover image / gradient */}
       <div className="class-card-cover">
         {coverImage ? (
