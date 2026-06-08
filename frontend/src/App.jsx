@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Layouts
 import StudentLayout from './pages/student/StudentLayout';
@@ -37,40 +38,19 @@ import NotFound from './pages/general/NotFound';
 // Dev utilities
 import DevRoleToggle from './components/general/DevRoleToggle';
 
-import { useAuth as useClerkAuth } from '@clerk/react';
 
-// ─── Protected Route ─────────────────────────────────────────────────────────
-// Guards a layout route: redirects to login if not authenticated, or if the current role doesn't match.
-const ProtectedRoute = ({ allowedRole, redirectTo }) => {
-  const { role } = useAuth();
-  const { isLoaded, isSignedIn } = useClerkAuth();
-
-  if (!isLoaded) return null; // or a loading spinner
-
-  if (!isSignedIn) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (role !== allowedRole) {
-    return <Navigate to={redirectTo} replace />;
-  }
-  return <Outlet />;
-};
 
 // ─── Root redirect based on active role ──────────────────────────────────────
 const RootRedirect = () => {
-  const { role } = useAuth();
-  const { isLoaded, isSignedIn } = useClerkAuth();
+  const { role, isAuthenticated } = useAuth();
 
-  if (!isLoaded) return null;
-
-  if (!isSignedIn) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   return (
     <Navigate
-      to={role === 'INSTRUCTOR' ? '/instructor/dashboard' : '/student/dashboard'}
+      to={role === 'teacher' ? '/instructor/dashboard' : '/student/dashboard'}
       replace
     />
   );
@@ -89,24 +69,28 @@ const AppRoutes = () => {
           <Route path="/" element={<RootRedirect />} />
 
           {/* Student routes — guard → layout → pages */}
-          <Route path="/student/*" element={<StudentLayout />}>
-            <Route path="dashboard" element={<StudentDashboard />} />
-            <Route path="assignments" element={<Assignments />} />
-            <Route path="assignments/:id" element={<AssignmentDetail />} />
-            <Route path="sandbox" element={<Sandbox />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="classes" element={<Classes />} />
-            <Route path="classes/:id" element={<ClassDetail />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Settings />} />
+          <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+            <Route path="/student/*" element={<StudentLayout />}>
+              <Route path="dashboard" element={<StudentDashboard />} />
+              <Route path="assignments" element={<Assignments />} />
+              <Route path="assignments/:id" element={<AssignmentDetail />} />
+              <Route path="sandbox" element={<Sandbox />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="classes" element={<Classes />} />
+              <Route path="classes/:id" element={<ClassDetail />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
           </Route>
 
           {/* Instructor routes — guard → layout → pages */}
-          <Route path="/instructor/*" element={<InstructorLayout />}>
-            <Route path="dashboard" element={<InstructorDashboard />} />
-            <Route path="classroom" element={<ManageClassroom />} />
-            <Route path="classroom/:id" element={<ManageClassDetail />} />
-            <Route path="assignments" element={<ManageAssignments />} />
+          <Route element={<ProtectedRoute allowedRoles={['teacher']} />}>
+            <Route path="/instructor/*" element={<InstructorLayout />}>
+              <Route path="dashboard" element={<InstructorDashboard />} />
+              <Route path="classroom" element={<ManageClassroom />} />
+              <Route path="classroom/:id" element={<ManageClassDetail />} />
+              <Route path="assignments" element={<ManageAssignments />} />
+            </Route>
           </Route>
 
           {/* Catch-all */}

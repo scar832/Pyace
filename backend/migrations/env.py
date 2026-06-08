@@ -79,12 +79,10 @@ async def run_async_migrations() -> None:
     """Create an async engine and run migrations."""
 
     # Build connect_args with SSL if the original URL requested it
-    connect_args = {}
+    connect_args = {"statement_cache_size": 0}
     if ssl_required:
         import ssl as _ssl
         ssl_ctx = _ssl.create_default_context()
-        # Neon uses valid certs, but if you ever hit verification issues
-        # you can relax this — for now we keep it strict.
         connect_args["ssl"] = ssl_ctx
 
     connectable = create_async_engine(

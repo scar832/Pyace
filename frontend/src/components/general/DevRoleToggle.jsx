@@ -32,17 +32,17 @@ const Toggle = () => {
       <span
         style={{
           fontWeight: 700,
-          color: role === 'STUDENT' ? '#7dd3fc' : '#a78bfa',
+          color: role === 'student' ? '#7dd3fc' : '#a78bfa',
           letterSpacing: '0.05em',
         }}
       >
-        {role}
+        {role.toUpperCase()}
       </span>
       <button
         onClick={toggleRole}
         style={{
           background:
-            role === 'STUDENT'
+            role === 'student'
               ? 'linear-gradient(135deg, #0ea5e9, #6366f1)'
               : 'linear-gradient(135deg, #7c3aed, #ec4899)',
           border: 'none',

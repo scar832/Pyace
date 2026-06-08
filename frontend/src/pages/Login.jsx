@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../Styles/Login.css';
 import Logo from '../assets/image2.png';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { registerWithEmail, loginWithEmail, loginWithGoogle } from '../api/auth';
 
 const TechNode = ({ icon, top, left, delay }) => (
     <motion.div
@@ -148,111 +150,96 @@ const CodeMockup = () => (
     </motion.div>
 );
 
-import { useSignIn, useSignUp, useUser, useClerk } from '@clerk/react';
-import { useAuth } from '../context/AuthContext';
-import { useEffect } from 'react';
 
 const Login = () => {
-    const [role, setRole] = useState('student');
+    const [selectedRole, setSelectedRole] = useState('student');
     const [isLogin, setIsLogin] = useState(false);
     const navigate = useNavigate();
-
-    // Clerk Hooks
-    const { signIn } = useSignIn();
-    const { signUp } = useSignUp();
-    const { setActive } = useClerk();
-    const { isSignedIn } = useUser();
-    const { setRole: setAppRole } = useAuth();
-
-    useEffect(() => {
-        if (isSignedIn) {
-            navigate('/');
-        }
-    }, [isSignedIn, navigate]);
+    const { login: authLogin, isAuthenticated } = useAuth();
 
     // Form States
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
-    const [code, setCode] = useState('');
-    const [pendingVerification, setPendingVerification] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
+    // ── Redirect helper ──────────────────────────────────────────────────
+    const handleRedirect = (role) => {
+        if (role === 'teacher') {
+            navigate('/instructor/dashboard');
+        } else {
+            navigate('/student/dashboard');
+        }
+    };
+
+    // Back Routing: If already authenticated on mount, redirect immediately
+    useEffect(() => {
+        const token = localStorage.getItem('pyace_token');
+        const role = localStorage.getItem('user_role');
+        if (token && role) {
+            if (role === 'teacher') {
+                navigate('/instructor/dashboard', { replace: true });
+            } else {
+                navigate('/student/dashboard', { replace: true });
+            }
+        }
+    }, [navigate]);
+
+    // ── Email + Password Sign In ─────────────────────────────────────────
     const handleSignIn = async (e) => {
         e.preventDefault();
-        if (!signIn) return;
         setError('');
+        setLoading(true);
 
         try {
-            const result = await signIn.create({
-                identifier: email,
-                password,
-            });
-
-            if (result.status === "complete") {
-                await setActive({ session: result.createdSessionId });
-                navigate('/');
-            } else {
-                setError("Sign in incomplete.");
-            }
+            const data = await loginWithEmail(email, password);
+            authLogin(data.access_token, data.role);
+            handleRedirect(data.role);
         } catch (err) {
-            console.error("Sign in error:", err);
-            setError(err.errors?.[0]?.longMessage || "An error occurred during sign in.");
+            setError(err.message || 'An error occurred during sign in.');
+        } finally {
+            setLoading(false);
         }
     };
 
+    // ── Email + Password Sign Up ─────────────────────────────────────────
     const handleSignUp = async (e) => {
         e.preventDefault();
-        if (!signUp) return;
         setError('');
+        setLoading(true);
 
         try {
-            const firstName = fullName.split(' ')[0] || '';
-            const lastName = fullName.split(' ').slice(1).join(' ') || '';
-            
-            const result = await signUp.create({
-                emailAddress: email,
-                password,
-                firstName,
-                lastName,
-                unsafeMetadata: {
-                    role: role.toUpperCase()
-                }
-            });
-
-            await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-            setPendingVerification(true);
+            const data = await registerWithEmail(fullName, email, password, selectedRole);
+            authLogin(data.access_token, data.role);
+            handleRedirect(data.role);
         } catch (err) {
-            console.error("Sign up error:", err);
-            setError(err.errors?.[0]?.longMessage || "An error occurred during sign up.");
+            setError(err.message || 'An error occurred during sign up.');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleVerify = async (e) => {
-        e.preventDefault();
-        if (!signUp) return;
+    // ── Google OAuth ─────────────────────────────────────────────────────
+    const handleGoogleAuth = async () => {
         setError('');
-
-        try {
-            const result = await signUp.attemptEmailAddressVerification({ code });
-
-            if (result.status === "complete") {
-                await setActive({ session: result.createdSessionId });
-                setAppRole(role.toUpperCase());
-                navigate('/');
-            } else {
-                setError("Verification failed.");
-            }
-        } catch (err) {
-            console.error(err);
-            setError(err.errors?.[0]?.longMessage || "Invalid verification code.");
-        }
+        // Google Sign-In is not yet wired to an actual Google button.
+        // When integrated with Google Identity Services, the credential
+        // (ID token) will be passed here:
+        //
+        // try {
+        //     const data = await loginWithGoogle(credential, selectedRole);
+        //     authLogin(data.access_token, data.role);
+        //     handleRedirect(data.role);
+        // } catch (err) {
+        //     setError(err.message || 'Google authentication failed.');
+        // }
+        alert('Google Sign-In integration coming soon!');
     };
 
     const toggleMode = (loginMode) => {
         setIsLogin(loginMode);
         setError('');
-        setPendingVerification(false);
     };
 
     return (
@@ -277,50 +264,47 @@ const Login = () => {
                         <h1 className="title">{isLogin ? 'Welcome back' : 'Create your account'}</h1>
                         <p className="subtitle">{isLogin ? 'Login to continue to Pyace.' : 'Join the future of personalized education.'}</p>
 
-                        {!isLogin && !pendingVerification && (
-                            <div className="role-toggle">
-                                <button
-                                    type="button"
-                                    className={`toggle-btn ${role === 'student' ? 'active' : ''}`}
-                                    onClick={() => setRole('student')}
-                                >
-                                    I am a Student
+                        {/* Role toggle — visible on both signup and login */}
+                        <div className="role-toggle">
+                            <button
+                                type="button"
+                                className={`toggle-btn ${selectedRole === 'student' ? 'active' : ''}`}
+                                onClick={() => setSelectedRole('student')}
+                            >
+                                I am a Student
+                            </button>
+                            <button
+                                type="button"
+                                className={`toggle-btn ${selectedRole === 'instructor' ? 'active' : ''}`}
+                                onClick={() => setSelectedRole('instructor')}
+                            >
+                                I am an Instructor
+                            </button>
+                        </div>
+
+                        <>
+                            <div className="oauth-buttons">
+                                <button type="button" className="oauth-btn" onClick={handleGoogleAuth}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                    </svg>
+                                    Google
                                 </button>
-                                <button
-                                    type="button"
-                                    className={`toggle-btn ${role === 'instructor' ? 'active' : ''}`}
-                                    onClick={() => setRole('instructor')}
-                                >
-                                    I am an Instructor
+                                <button type="button" className="oauth-btn" onClick={() => alert("GitHub sign in coming soon!")}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                        <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                                    </svg>
+                                    GitHub
                                 </button>
                             </div>
-                        )}
 
-                        {!pendingVerification && (
-                            <>
-                                <div className="oauth-buttons">
-                                    <button type="button" className="oauth-btn" onClick={() => alert("Google sign in coming soon!")}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                        </svg>
-                                        Google
-                                    </button>
-                                    <button type="button" className="oauth-btn" onClick={() => alert("GitHub sign in coming soon!")}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                                        </svg>
-                                        GitHub
-                                    </button>
-                                </div>
-
-                                <div className="divider">
-                                    <span>OR CONTINUE WITH EMAIL</span>
-                                </div>
-                            </>
-                        )}
+                            <div className="divider">
+                                <span>OR CONTINUE WITH EMAIL</span>
+                            </div>
+                        </>
 
                         <form className="login-form">
                             {error && (
@@ -329,76 +313,55 @@ const Login = () => {
                                 </div>
                             )}
 
-                            {pendingVerification ? (
-                                <>
+                            <>
+                                {!isLogin && (
                                     <div className="input-group">
-                                        <label>VERIFICATION CODE</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Enter verification code" 
-                                            value={code} 
-                                            onChange={(e) => setCode(e.target.value)} 
-                                        />
-                                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '6px' }}>
-                                            Please check your email for the verification code.
-                                        </p>
-                                    </div>
-                                    <button type="button" className="submit-btn" onClick={handleVerify}>
-                                        Verify Email
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    {!isLogin && (
-                                        <div className="input-group">
-                                            <label>FULL NAME</label>
-                                            <input 
-                                                type="text" 
-                                                placeholder="John Doe" 
-                                                value={fullName} 
-                                                onChange={(e) => setFullName(e.target.value)} 
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="input-group">
-                                        <label>EMAIL ADDRESS</label>
-                                        <input 
-                                            type="email" 
-                                            placeholder="john@example.com" 
-                                            value={email} 
-                                            onChange={(e) => setEmail(e.target.value)} 
+                                        <label>FULL NAME</label>
+                                        <input
+                                            type="text"
+                                            placeholder="John Doe"
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
                                         />
                                     </div>
-                                    <div className="input-group">
-                                        <label>PASSWORD</label>
-                                        <input 
-                                            type="password" 
-                                            placeholder="••••••••" 
-                                            value={password} 
-                                            onChange={(e) => setPassword(e.target.value)} 
-                                        />
-                                    </div>
+                                )}
+                                <div className="input-group">
+                                    <label>EMAIL ADDRESS</label>
+                                    <input
+                                        type="email"
+                                        placeholder="john@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                                <div className="input-group">
+                                    <label>PASSWORD</label>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                </div>
 
-                                    <button 
-                                        type="button" 
-                                        className="submit-btn" 
-                                        onClick={isLogin ? handleSignIn : handleSignUp}
-                                    >
-                                        {isLogin ? 'Sign In' : 'Create Account'}
-                                    </button>
-                                </>
-                            )}
+                                <button
+                                    type="button"
+                                    className="submit-btn"
+                                    onClick={isLogin ? handleSignIn : handleSignUp}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Please wait…' : isLogin ? 'Sign In' : 'Create Account'}
+                                </button>
+                            </>
                         </form>
 
-                        {!pendingVerification && (
-                            <p className="signin-link">
-                                {isLogin ? (
-                                    <>Don't have an account? <span onClick={() => toggleMode(false)}>Sign Up</span></>
-                                ) : (
-                                    <>Already have an account? <span onClick={() => toggleMode(true)}>Sign In</span></>
-                                )}
-                            </p>
-                        )}
+                        <p className="signin-link">
+                            {isLogin ? (
+                                <>Don't have an account? <span onClick={() => toggleMode(false)}>Sign Up</span></>
+                            ) : (
+                                <>Already have an account? <span onClick={() => toggleMode(true)}>Sign In</span></>
+                            )}
+                        </p>
                     </div>
 
                     <footer className="login-footer">

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "super-secret-key-for-development"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    GOOGLE_CLIENT_ID: str | None = None
 
     model_config = ConfigDict(
         env_file=".env",

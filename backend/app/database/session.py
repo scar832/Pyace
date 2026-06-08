@@ -29,7 +29,12 @@ clean_query = urlencode({k: v[0] for k, v in query_params.items()})
 clean_url = urlunparse(parsed._replace(query=clean_query))
 
 # Build connect_args with SSL if the original URL requested it
-connect_args = {}
+connect_args = {
+    # Disable asyncpg's prepared statement cache — Neon's connection pooler
+    # shares connections across clients, so cached plans from one session
+    # can become stale after schema changes, causing InvalidCachedStatementError.
+    "statement_cache_size": 0,
+}
 if ssl_required:
     import ssl as _ssl
     ssl_ctx = _ssl.create_default_context()

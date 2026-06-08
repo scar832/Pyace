@@ -1,3 +1,4 @@
+import uuid as _uuid
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from app.models.user import UserRole
@@ -14,7 +15,7 @@ class UserCreate(UserBase):
 
 
 class UserResponse(BaseModel):
-    id: int
+    id: _uuid.UUID
     email: EmailStr
     full_name: str
     role: UserRole
@@ -25,3 +26,20 @@ class UserResponse(BaseModel):
     badges: list = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ---------------------------------------------------------------------------
+# Authentication schemas
+# ---------------------------------------------------------------------------
+
+class Token(BaseModel):
+    """Returned by both /login and /auth/google endpoints."""
+    access_token: str
+    token_type: str = "bearer"
+    role: str
+
+
+class GoogleAuthRequest(BaseModel):
+    """Body payload sent by the frontend after Google Sign-In."""
+    credential: str
+    role: str | None = None

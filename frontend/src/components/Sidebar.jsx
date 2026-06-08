@@ -1,9 +1,9 @@
-import { NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Settings, SquareTerminal, GraduationCap, School } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, BookOpen, Settings, SquareTerminal, GraduationCap, School, LogOut, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Logo from '../assets/image2.png';
 import '../Styles/Sidebar.css';
-import { ChevronRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const studentRoutes = [
   { path: '/student/dashboard', name: 'DASHBOARD', icon: LayoutDashboard },
@@ -22,6 +22,14 @@ const instructorRoutes = [
 
 // basePath: "/student" | "/instructor"
 const Sidebar = ({ basePath = '/student' }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const routes = basePath === '/instructor' ? instructorRoutes : studentRoutes;
   const portalLabel = basePath === '/instructor' ? 'Instructor Portal' : 'Student Portal';
 
@@ -66,6 +74,40 @@ const Sidebar = ({ basePath = '/student' }) => {
       </nav>
 
       <div className="sidebar-footer">
+        <button
+          onClick={handleLogout}
+          className="logout-btn"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            width: '100%',
+            padding: '12px',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            fontFamily: 'inherit',
+            transition: 'all 0.2s ease',
+            marginBottom: '12px',
+            textAlign: 'left',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#ef4444';
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--color-text-muted)';
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <LogOut size={20} className="nav-icon" />
+          <span>LOGOUT</span>
+        </button>
+
         <Link to={`${basePath}/profile`} style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="user-info">
             <div className="user-avatar">JS</div>
