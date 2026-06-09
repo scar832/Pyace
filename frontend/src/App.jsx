@@ -24,6 +24,8 @@ import ClassDetail from './pages/student/ClassDetail';
 import Profile from './pages/student/Profile';
 import Settings from './pages/student/Settings';
 import AssignmentDetail from './pages/student/AssignmentDetail';
+import ClassDetails from './pages/ClassDetails';
+import Layout from './components/Layout';
 
 // Instructor pages
 import InstructorDashboard from './pages/instructor/Dashboard';
@@ -54,6 +56,11 @@ const RootRedirect = () => {
       replace
     />
   );
+};
+
+const ClassLayout = () => {
+  const { role } = useAuth();
+  return <Layout basePath={role === 'teacher' ? '/instructor' : '/student'} />;
 };
 
 // ─── Inner App (needs access to AuthContext) ──────────────────────────────────
@@ -90,6 +97,13 @@ const AppRoutes = () => {
               <Route path="classroom" element={<ManageClassroom />} />
               <Route path="classroom/:id" element={<ManageClassDetail />} />
               <Route path="assignments" element={<ManageAssignments />} />
+            </Route>
+          </Route>
+
+          {/* Shared Class Details route */}
+          <Route element={<ProtectedRoute allowedRoles={['student', 'teacher']} />}>
+            <Route element={<ClassLayout />}>
+              <Route path="/class/:classId" element={<ClassDetails />} />
             </Route>
           </Route>
 

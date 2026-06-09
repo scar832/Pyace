@@ -1,94 +1,99 @@
-import React, { useState } from 'react';
-import { School } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { School, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ClassCard from '../../components/students/ClassCard';
+import { fetchClasses, joinClass } from '../../api/classes';
 import '../../Styles/classes.css';
 
-/* ─── Mock Data ──────────────────────────────────────────────────────────── */
-const mockClasses = [
-    {
-        id: 'cs301',
-        name: 'Advanced Data Structures',
-        courseCode: 'CS 301',
-        lecturer: 'Dr. Alan Turing',
-        accent: '#0061ff',
-        status: 'active',
-        coverImage: 'https://images.unsplash.com/photo-1667372393086-9d4001d51cf1?w=600&q=80&fit=crop',
-        overallScore: 84,
-        reviews: ['Great structure', 'Tough grading', 'Very rewarding', 'Clear examples'],
-    },
-    {
-        id: 'cs450',
-        name: 'Introduction to Artificial Intelligence',
-        courseCode: 'CS 450',
-        lecturer: 'Prof. Geoffrey Hinton',
-        accent: '#8b5cf6',
-        status: 'active',
-        coverImage: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80&fit=crop',
-        overallScore: 91,
-        reviews: ['Mind-expanding', 'Heavy workload', 'Inspiring lecturer'],
-    },
-    {
-        id: 'se210',
-        name: 'User Interface Engineering',
-        courseCode: 'SE 210',
-        lecturer: 'Sarah Drasner',
-        accent: '#10b981',
-        status: 'active',
-        coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&fit=crop',
-        overallScore: 95,
-        reviews: ['Excellent projects', 'Creative freedom', 'Best course this semester'],
-    },
-    {
-        id: 'se305',
-        name: 'Modern Web Architecture',
-        courseCode: 'SE 305',
-        lecturer: 'Dan Abramov',
-        accent: '#f59e0b',
-        status: 'active',
-        coverImage: 'https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=600&q=80&fit=crop',
-        overallScore: 78,
-        reviews: ['Very practical', 'Fast-paced', 'Solid fundamentals'],
-    },
-    {
-        id: 'db201',
-        name: 'Database Management Systems',
-        courseCode: 'DB 201',
-        lecturer: 'Dr. Edgar Codd',
-        accent: '#ef4444',
-        status: 'past',
-        coverImage: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600&q=80&fit=crop',
-        overallScore: 88,
-        reviews: ['Dense but useful', 'SQL labs were great', 'Final was hard'],
-    },
-    {
-        id: 'cs220',
-        name: 'Computer Organisation & Architecture',
-        courseCode: 'CS 220',
-        lecturer: 'Prof. John Hennessy',
-        accent: '#06b6d4',
-        status: 'past',
-        coverImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80&fit=crop',
-        overallScore: 72,
-        reviews: ['Low-level is tricky', 'RISC-V labs were fun', 'Very demanding'],
-    },
-];
+/* ─── Accent color helper ────────────────────────────────────────────────── */
+const getAccentColor = (code) => {
+    const accents = [
+        '#0061ff', // blue
+        '#8b5cf6', // purple
+        '#10b981', // green
+        '#f59e0b', // amber
+        '#ef4444', // red
+        '#06b6d4'  // cyan
+    ];
+    let hash = 0;
+    if (code) {
+        for (let i = 0; i < code.length; i++) {
+            hash = code.charCodeAt(i) + ((hash << 5) - hash);
+        }
+    }
+    const index = Math.abs(hash) % accents.length;
+    return accents[index];
+};
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 const Classes = () => {
+    const [classes, setClasses] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [joinCode, setJoinCode] = useState('');
+    const [joining, setJoining] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [filter, setFilter] = useState('active'); // 'active' | 'past'
 
-    const handleJoin = (e) => {
+    const loadClasses = async () => {
+        try {
+            const data = await fetchClasses();
+            setClasses(data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadClasses();
+    }, []);
+
+    const handleJoin = async (e) => {
         e.preventDefault();
         const code = joinCode.trim();
         if (!code) return;
-        // TODO: wire to POST /api/classes/join
-        alert(`Join request sent for code: "${code}"`);
-        setJoinCode('');
+
+        try {
+            setError('');
+            setSuccess('');
+            setJoining(true);
+            await joinClass(code);
+            setJoinCode('');
+            setSuccess('Successfully joined the class!');
+            // Refresh classes list
+            await loadClasses();
+        } catch (err) {
+            const msg = err.message || '';
+            if (msg.includes('not found') || msg.includes('404')) {
+                setError('No class found with this code. Check the code and try again.');
+            } else if (msg.includes('Already enrolled') || msg.includes('already a member') || msg.includes('400')) {
+                setError('You are already a member of this class.');
+            } else {
+                setError(msg || 'An error occurred while joining the class.');
+            }
+        } finally {
+            setJoining(false);
+        }
     };
 
-    const filtered = mockClasses.filter((c) => c.status === filter);
+    const filtered = classes.filter((c) => {
+        if (filter === 'active') return c.status === 'active';
+        if (filter === 'past') return c.status === 'archived';
+        return true;
+    });
+
+    const mappedClasses = filtered.map((cls) => ({
+        id: cls.id,
+        name: cls.class_name,
+        courseCode: cls.class_code,
+        lecturer: cls.instructor_name || 'Instructor',
+        status: cls.status,
+        coverImage: cls.img_link,
+        accent: getAccentColor(cls.class_code),
+        rawClass: cls,
+    }));
 
     return (
         <motion.div
@@ -110,16 +115,50 @@ const Classes = () => {
                     <input
                         type="text"
                         className="join-input"
-                        placeholder="Enter class code (e.g. XK-4291)"
+                        placeholder="Enter class code (e.g. XK4291)"
                         value={joinCode}
-                        onChange={(e) => setJoinCode(e.target.value)}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                         autoComplete="off"
                         spellCheck={false}
+                        disabled={joining}
                     />
-                    <button type="submit" className="join-btn">
-                        Join Class
+                    <button type="submit" className="join-btn" disabled={joining}>
+                        {joining ? (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Loader2 className="modal-spinner" size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                Joining...
+                            </span>
+                        ) : (
+                            'Join Class'
+                        )}
                     </button>
                 </form>
+
+                {error && (
+                    <div className="modal-error-banner" style={{ marginTop: '10px' }}>
+                        <AlertCircle size={16} />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                {success && (
+                    <div style={{
+                        marginTop: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '12px 16px',
+                        background: 'rgba(16, 185, 129, 0.08)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        borderRadius: '12px',
+                        color: '#34d399',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                    }}>
+                        <CheckCircle2 size={16} />
+                        <span>{success}</span>
+                    </div>
+                )}
             </div>
 
             {/* Enrolled Classes */}
@@ -129,7 +168,7 @@ const Classes = () => {
                         <h2 className="classes-section-title">
                             {filter === 'active' ? 'Active Classes' : 'Past Classes'}
                         </h2>
-                        <span className="classes-count">{filtered.length} classes</span>
+                        <span className="classes-count">{loading ? '...' : mappedClasses.length} classes</span>
                     </div>
 
                     {/* Active / Past toggle */}
@@ -146,32 +185,32 @@ const Classes = () => {
                         >
                             Past
                         </button>
-                        <button
-                            className={`filter-pill favorites${filter === 'favorites' ? ' active' : ''}`}
-                            onClick={() => setFilter('favorites')}
-                        >
-                            Favorites
-                        </button>
                     </div>
                 </div>
 
-                <div className="classes-grid">
-                    {filtered.length === 0 ? (
-                        <div className="classes-empty">
-                            <div className="classes-empty-icon">
-                                <School size={40} />
+                {loading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
+                        <Loader2 size={32} className="modal-spinner" style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
+                    </div>
+                ) : (
+                    <div className="classes-grid">
+                        {mappedClasses.length === 0 ? (
+                            <div className="classes-empty">
+                                <div className="classes-empty-icon">
+                                    <School size={40} />
+                                </div>
+                                <h3>No {filter} classes</h3>
+                                <p>
+                                    {filter === 'active'
+                                        ? 'Join a class above using a code from your lecturer.'
+                                        : 'Completed classes will appear here.'}
+                                </p>
                             </div>
-                            <h3>No {filter} classes</h3>
-                            <p>
-                                {filter === 'active'
-                                    ? 'Join a class above using a code from your lecturer.'
-                                    : 'Completed classes will appear here.'}
-                            </p>
-                        </div>
-                    ) : (
-                        filtered.map((cls) => <ClassCard key={cls.id} {...cls} />)
-                    )}
-                </div>
+                        ) : (
+                            mappedClasses.map((cls) => <ClassCard key={cls.id} {...cls} />)
+                        )}
+                    </div>
+                )}
             </div>
         </motion.div>
     );

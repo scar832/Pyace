@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { MoreVertical, Star, Archive, LogOut } from 'lucide-react';
 
 /**
@@ -17,9 +17,10 @@ import { MoreVertical, Star, Archive, LogOut } from 'lucide-react';
  *  coverImage   string   img URL (optional)
  *  accent       string   CSS colour used for gradient fallback
  */
-const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverImage, accent, basePath = '/student/classes' }) => {
+const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverImage, accent, basePath = '/student/classes', rawClass }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const inits = lecturer
     .split(' ')
@@ -42,7 +43,7 @@ const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverIma
   }, [menuOpen]);
 
   const handleMenuAction = (action, e) => {
-    e.preventDefault(); // prevent Link navigation
+    e.preventDefault(); // prevent navigation
     e.stopPropagation();
     setMenuOpen(false);
     // TODO: wire to API
@@ -55,15 +56,35 @@ const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverIma
     setMenuOpen((prev) => !prev);
   };
 
-  // Derive a gradient from accent colour for fallback
+  const handleCardClick = () => {
+    const classItem = rawClass || {
+      id,
+      class_name: name,
+      class_code: courseCode,
+      instructor_name: lecturer,
+      status,
+      img_link: coverImage,
+    };
+    navigate(`/class/${id}`, { state: { classData: classItem } });
+  };
+
+  // Derive a gradient from accent colour for fallback.
+  // If accent is a full CSS background value (e.g. a premiumBackground gradient),
+  // use it directly; otherwise build a translucent colour gradient.
   const gradientStyle = {
     background: accent
-      ? `linear-gradient(135deg, ${accent}cc, ${accent}66)`
-      : 'linear-gradient(135deg, #0061ff, #4318FF)',
+      ? accent.startsWith('linear-gradient') || accent.startsWith('radial-gradient')
+        ? accent
+        : `linear-gradient(135deg, ${accent}cc, ${accent}66)`
+      : 'linear-gradient(135deg, #0a0a0a, #171717)',
   };
 
   return (
-    <Link to={`${basePath}/${id}`} className="class-card">
+    <div
+      onClick={handleCardClick}
+      className="class-card"
+      style={{ cursor: 'pointer' }}
+    >
       {/* Cover image / gradient */}
       <div className="class-card-cover">
         {coverImage ? (
@@ -130,7 +151,7 @@ const ClassCard = ({ id, name, courseCode, lecturer, status = 'active', coverIma
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

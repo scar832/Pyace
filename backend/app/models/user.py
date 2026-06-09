@@ -30,12 +30,30 @@ class User(Base):
     total_xp = Column(Integer, nullable=False, default=0)
     badges = Column(JSONB, nullable=False, server_default="[]")
 
-    # --- Relationships (will be fully wired when Class / Enrollment models exist) ---
-    # A teacher owns many classrooms
-    # classrooms = relationship("Classroom", back_populates="teacher")
+    # --- Relationships ---
+    # Classes where this user is the instructor
+    classes_taught = relationship(
+        "Class",
+        foreign_keys="Class.instructor_id",
+        back_populates="instructor",
+        lazy="selectin",
+    )
 
-    # A student is enrolled in many classrooms via an enrollment join table
-    # enrollments = relationship("Enrollment", back_populates="student")
+    # Classes where this user is the prefect (TA lead)
+    classes_as_prefect = relationship(
+        "Class",
+        foreign_keys="Class.prefect_id",
+        back_populates="prefect",
+        lazy="selectin",
+    )
+
+    # Enrollment records for this user (as student / TA)
+    enrollments = relationship(
+        "ClassEnrollment",
+        foreign_keys="ClassEnrollment.student_id",
+        back_populates="student",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email!r} role={self.role.value}>"
