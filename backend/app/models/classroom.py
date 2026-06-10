@@ -58,6 +58,12 @@ class Class(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+    assignments = relationship(
+        "Assignment",
+        back_populates="classroom",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
     instructor = relationship(
         "User",
         foreign_keys=[instructor_id],

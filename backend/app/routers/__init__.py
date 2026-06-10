@@ -1,1 +1,1 @@
-from . import auth, classes, uploads
+from . import auth, classes, uploads, assignments

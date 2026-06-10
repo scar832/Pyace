@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import auth, classes, uploads
+from app.routers import auth, classes, uploads, assignments
 
 # ---------------------------------------------------------------------------
 # Configure Cloudinary once at startup (before any router imports it)
@@ -34,6 +34,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(classes.router)
 app.include_router(uploads.router)
+app.include_router(assignments.router)
 
 
 @app.get("/")

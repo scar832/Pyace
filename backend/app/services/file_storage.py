@@ -35,3 +35,27 @@ async def upload_image(
     )
 
     return result["secure_url"]
+
+
+async def upload_file(
+    file: UploadFile,
+    folder_name: str = "pyace/assignments",
+) -> str:
+    """Upload a raw file (PDF, ZIP, DOCX, etc.) to Cloudinary and return its secure URL.
+
+    Args:
+        file:        The multipart file received from the FastAPI endpoint.
+        folder_name: Cloudinary folder to store the asset in.
+
+    Returns:
+        The ``secure_url`` (HTTPS) of the uploaded file.
+    """
+    contents = await file.read()
+
+    result = cloudinary.uploader.upload(
+        contents,
+        folder=folder_name,
+        resource_type="auto",
+    )
+
+    return result["secure_url"]

@@ -28,8 +28,12 @@ import {
   Award,
   Clipboard,
   Check,
-  Loader2
+  Loader2,
+  Plus
 } from 'lucide-react';
+import { fetchAssignments } from '../api/assignments';
+import AssignmentCard from '../components/AssignmentCard';
+import CreateAssignmentModal from '../components/CreateAssignmentModal';
 import '../Styles/classDetail.css';
 
 /* ─── Helper for initials ────────────────────────────────────────────────── */
@@ -248,6 +252,29 @@ const ClassDetails = () => {
   const [activeChat, setActiveChat] = useState(null);
   const [copied, setCopied] = useState(false);
 
+  // Real Database Assignment state
+  const [assignments, setAssignments] = useState([]);
+  const [loadingAssignments, setLoadingAssignments] = useState(true);
+  const [assignmentsError, setAssignmentsError] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const loadAssignments = async () => {
+    setLoadingAssignments(true);
+    setAssignmentsError('');
+    try {
+      const data = await fetchAssignments(classId);
+      setAssignments(data);
+    } catch (err) {
+      setAssignmentsError(err.message || 'Failed to load assignments.');
+    } finally {
+      setLoadingAssignments(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAssignments();
+  }, [classId]);
+
   // Fallback API Fetch if refreshed / direct navigated
   useEffect(() => {
     if (!location.state?.classData) {
@@ -330,7 +357,7 @@ const ClassDetails = () => {
 
   const getTabs = () => {
     const tabs = [
-      { id: 'assignments',   label: 'Assignments',  Icon: FileText,     countKey: 'assignments' },
+      { id: 'assignments',   label: 'Assignments',  Icon: FileText,     count: assignments.length },
       { id: 'mates',         label: role === 'teacher' ? 'Students' : 'Classmates',   Icon: Users,        countKey: 'mates' }
     ];
     if (details.hasGroups) {
@@ -457,7 +484,7 @@ const ClassDetails = () => {
       </div>
 
       <div className="class-detail-tabs" role="tablist">
-        {currentTabs.map(({ id: tabId, label, Icon, countKey }) => (
+        {currentTabs.map(({ id: tabId, label, Icon, countKey, count }) => (
           <button
             key={tabId}
             role="tab"
@@ -467,9 +494,11 @@ const ClassDetails = () => {
           >
             <Icon size={15} />
             {label}
-            {countKey && details[countKey] && (
+            {count !== undefined ? (
+              <span className="tab-btn-count">{count}</span>
+            ) : countKey && details[countKey] ? (
               <span className="tab-btn-count">{details[countKey].length}</span>
-            )}
+            ) : null}
           </button>
         ))}
       </div>
@@ -478,42 +507,45 @@ const ClassDetails = () => {
         {/* ASSIGNMENTS */}
         {activeTab === 'assignments' && (
           <motion.div key="assignments" role="tabpanel" className="tab-panel" variants={panel} initial="hidden" animate="visible" exit="hidden">
-            {details.assignments.map((a) => {
-              const { label, cls: sCls } = statusMap[a.status] ?? statusMap['active'];
-              const isExpanded = expandedAssignment === a.id;
-              
-              return (
-                <div key={a.id} className={`assignment-accordion ${isExpanded ? 'expanded' : ''}`}>
-                  <div className="assignment-row" onClick={() => setExpandedAssignment(isExpanded ? null : a.id)}>
-                    <div className="assignment-icon"><FileText size={18} /></div>
-                    <div className="assignment-info">
-                      <p className="assignment-title">{a.title}</p>
-                      <p className="assignment-due">Due {a.due}</p>
-                    </div>
-                    <span className={`assignment-status ${sCls}`}>{label}</span>
-                    <ChevronDown className={`assignment-chevron ${isExpanded ? 'rotated' : ''}`} size={16} />
-                  </div>
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div 
-                        className="assignment-details"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
-                      >
-                        <div className="assignment-details-content">
-                          <p>{a.details}</p>
-                          <Link to={a.url || '#'} className="assignment-view-btn">
-                            View Full Assignment <ExternalLink size={14} />
-                          </Link>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+            {role === 'teacher' && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                <button
+                  className="join-btn"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} />
+                  <span>Create Assignment</span>
+                </button>
+              </div>
+            )}
+
+            {loadingAssignments ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '120px', gap: '12px' }}>
+                <Loader2 size={30} className="modal-spinner" style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Loading assignments...</p>
+              </div>
+            ) : assignmentsError ? (
+              <div style={{ padding: '16px', color: '#ef4444', textAlign: 'center', fontSize: '0.9rem' }}>
+                {assignmentsError}
+              </div>
+            ) : assignments.length === 0 ? (
+              <div className="classes-empty">
+                <FileText size={40} className="classes-empty-icon" />
+                <h3>No assignments yet</h3>
+                <p>
+                  {role === 'teacher'
+                    ? 'Click "Create Assignment" to add the first task.'
+                    : 'Your instructor has not posted any assignments yet.'}
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {assignments.map((assignment) => (
+                  <AssignmentCard key={assignment.id} assignment={assignment} />
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -700,6 +732,15 @@ const ClassDetails = () => {
         onClose={() => setIsChatOpen(false)} 
         chatContext={activeChat} 
         mockMessages={mockMessages} 
+      />
+
+      <CreateAssignmentModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        classId={classData.id}
+        onCreated={() => {
+          loadAssignments();
+        }}
       />
 
     </motion.div>
