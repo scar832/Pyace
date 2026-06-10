@@ -32,6 +32,7 @@ import {
   Plus
 } from 'lucide-react';
 import { fetchAssignments } from '../api/assignments';
+import { fetchAnnouncements, createAnnouncement, deleteAnnouncement } from '../api/announcements';
 import AssignmentCard from '../components/AssignmentCard';
 import CreateAssignmentModal from '../components/CreateAssignmentModal';
 import '../Styles/classDetail.css';
@@ -258,6 +259,18 @@ const ClassDetails = () => {
   const [assignmentsError, setAssignmentsError] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // Real Database Announcement state
+  const [announcements, setAnnouncements] = useState([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+  const [announcementsError, setAnnouncementsError] = useState('');
+
+  // Announcement form state (teachers only)
+  const [newAnnouncementContent, setNewAnnouncementContent] = useState('');
+  const [isAnnouncementPinned, setIsAnnouncementPinned] = useState(false);
+  const [announcementPinnedUntil, setAnnouncementPinnedUntil] = useState('');
+  const [creatingAnnouncement, setCreatingAnnouncement] = useState(false);
+  const [createAnnouncementError, setCreateAnnouncementError] = useState('');
+
   const loadAssignments = async () => {
     setLoadingAssignments(true);
     setAssignmentsError('');
@@ -271,8 +284,58 @@ const ClassDetails = () => {
     }
   };
 
+  const loadAnnouncements = async () => {
+    setLoadingAnnouncements(true);
+    setAnnouncementsError('');
+    try {
+      const data = await fetchAnnouncements(classId);
+      setAnnouncements(data);
+    } catch (err) {
+      setAnnouncementsError(err.message || 'Failed to load announcements.');
+    } finally {
+      setLoadingAnnouncements(false);
+    }
+  };
+
+  const handleCreateAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!newAnnouncementContent.trim()) return;
+
+    setCreatingAnnouncement(true);
+    setCreateAnnouncementError('');
+
+    try {
+      const payload = {
+        content: newAnnouncementContent.trim(),
+        is_pinned: isAnnouncementPinned,
+        pinned_until: isAnnouncementPinned && announcementPinnedUntil ? new Date(announcementPinnedUntil).toISOString() : null
+      };
+
+      await createAnnouncement(classId, payload);
+      setNewAnnouncementContent('');
+      setIsAnnouncementPinned(false);
+      setAnnouncementPinnedUntil('');
+      loadAnnouncements();
+    } catch (err) {
+      setCreateAnnouncementError(err.message || 'Failed to post announcement.');
+    } finally {
+      setCreatingAnnouncement(false);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (announcementId) => {
+    if (!window.confirm('Are you sure you want to delete this announcement?')) return;
+    try {
+      await deleteAnnouncement(classId, announcementId);
+      loadAnnouncements();
+    } catch (err) {
+      alert(err.message || 'Failed to delete announcement.');
+    }
+  };
+
   useEffect(() => {
     loadAssignments();
+    loadAnnouncements();
   }, [classId]);
 
   // Fallback API Fetch if refreshed / direct navigated
@@ -364,7 +427,7 @@ const ClassDetails = () => {
       tabs.push({ id: 'groups', label: 'Groups', Icon: Layers, countKey: 'groups' });
     }
     tabs.push({ id: 'resources',     label: 'Resources',    Icon: BookOpen,     countKey: 'resources' });
-    tabs.push({ id: 'announcements', label: 'Announcements',Icon: Megaphone,    countKey: 'announcements' });
+    tabs.push({ id: 'announcements', label: 'Announcements',Icon: Megaphone,    count: announcements.length });
     if (role === 'student') {
       tabs.push({ id: 'score',         label: 'Performance',  Icon: BarChart2,    countKey: null });
     }
@@ -618,24 +681,190 @@ const ClassDetails = () => {
         {/* ANNOUNCEMENTS */}
         {activeTab === 'announcements' && (
           <motion.div key="announcements" role="tabpanel" className="tab-panel" variants={panel} initial="hidden" animate="visible" exit="hidden">
-            <div className="announcements-list">
-              {[...details.announcements].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)).map((a) => (
-                <div key={a.id} className={`announcement-card ${a.isPinned ? 'pinned' : ''}`}>
-                  <div className="announcement-card-top">
-                    <h3 className="announcement-title">
-                      {a.isPinned && <Pin size={14} className="pin-icon" />}
-                      {a.title}
-                    </h3>
-                    <span className="announcement-date">{a.date}</span>
+            {role === 'teacher' && (
+              <form onSubmit={handleCreateAnnouncement} style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.07)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{ margin: 0, color: 'var(--color-text-main)', fontSize: '1rem', fontWeight: 700 }}>
+                  Post Class Announcement
+                </h3>
+                <textarea
+                  placeholder="Write your announcement here..."
+                  value={newAnnouncementContent}
+                  onChange={(e) => setNewAnnouncementContent(e.target.value)}
+                  required
+                  rows={3}
+                  style={{
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    padding: '12px 14px',
+                    color: 'var(--color-text-main)',
+                    fontSize: '0.875rem',
+                    resize: 'vertical',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                      <input
+                        type="checkbox"
+                        checked={isAnnouncementPinned}
+                        onChange={(e) => setIsAnnouncementPinned(e.target.checked)}
+                        style={{ accentColor: 'var(--color-primary)', width: '15px', height: '15px', cursor: 'pointer' }}
+                      />
+                      <span>Pin Announcement</span>
+                    </label>
+                    {isAnnouncementPinned && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Until:</span>
+                        <input
+                          type="datetime-local"
+                          value={announcementPinnedUntil}
+                          onChange={(e) => setAnnouncementPinnedUntil(e.target.value)}
+                          style={{
+                            background: 'rgba(0, 0, 0, 0.2)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '6px',
+                            padding: '4px 8px',
+                            color: 'var(--color-text-main)',
+                            fontSize: '0.8rem',
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <span className={`announcement-badge ${a.isPinned ? 'pinned' : ''}`}>
-                    <Megaphone size={11} />
-                    Announcement
-                  </span>
-                  <p className="announcement-content">{a.content}</p>
+                  <button type="submit" disabled={creatingAnnouncement} className="join-btn" style={{ height: '36px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    {creatingAnnouncement ? (
+                      <>
+                        <Loader2 size={14} className="modal-spinner" style={{ animation: 'spin 1s linear infinite' }} />
+                        <span>Posting...</span>
+                      </>
+                    ) : (
+                      <span>Post Announcement</span>
+                    )}
+                  </button>
                 </div>
-              ))}
-            </div>
+                {createAnnouncementError && (
+                  <p style={{ color: '#ef4444', fontSize: '0.8rem', margin: 0 }}>{createAnnouncementError}</p>
+                )}
+              </form>
+            )}
+
+            {loadingAnnouncements ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '120px', gap: '12px' }}>
+                <Loader2 size={30} className="modal-spinner" style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Loading announcements...</p>
+              </div>
+            ) : announcementsError ? (
+              <div style={{ padding: '16px', color: '#ef4444', textAlign: 'center', fontSize: '0.9rem' }}>
+                {announcementsError}
+              </div>
+            ) : announcements.length === 0 ? (
+              <div className="classes-empty">
+                <Megaphone size={40} className="classes-empty-icon" />
+                <h3>No announcements yet</h3>
+                <p>
+                  {role === 'teacher'
+                    ? 'Post the first classroom announcement above.'
+                    : 'Your instructor has not posted any announcements yet.'}
+                </p>
+              </div>
+            ) : (
+              <div className="announcements-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {announcements.map((a) => {
+                  const isPinned = a.is_pinned && (!a.pinned_until || new Date(a.pinned_until) > new Date());
+                  return (
+                    <div
+                      key={a.id}
+                      className={`announcement-card ${isPinned ? 'pinned' : ''}`}
+                      style={{
+                        position: 'relative',
+                        background: isPinned ? 'rgba(0, 97, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)',
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        border: isPinned ? '1px solid rgba(0, 97, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.07)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)'
+                      }}
+                    >
+                      <div className="announcement-card-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h3 className="announcement-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-main)', fontSize: '1rem', fontWeight: 700 }}>
+                            {isPinned && <Pin size={14} className="pin-icon" style={{ color: 'var(--color-primary)' }} />}
+                            Announcement
+                          </h3>
+                          <span className="announcement-date" style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                            {new Date(a.created_at).toLocaleString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                        {role === 'teacher' && (
+                          <button
+                            onClick={() => handleDeleteAnnouncement(a.id)}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.08)',
+                              border: '1px solid rgba(239, 68, 68, 0.15)',
+                              color: '#f87171',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'background 0.2s, border 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.15)';
+                            }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                      <span className={`announcement-badge ${isPinned ? 'pinned' : ''}`}>
+                        <Megaphone size={11} />
+                        {isPinned ? 'Pinned Announcement' : 'Announcement'}
+                      </span>
+                      <p className="announcement-content" style={{ margin: 0, fontSize: '0.88rem', color: 'var(--color-text-muted)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                        {a.content}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
         )}
 

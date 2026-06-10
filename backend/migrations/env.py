@@ -14,6 +14,7 @@ from app.database.session import Base
 from app.models.user import User  # noqa: F401
 from app.models.classroom import Class, ClassEnrollment  # noqa: F401
 from app.models.assignment import Assignment  # noqa: F401
+from app.models.announcement import Announcement  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
